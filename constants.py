@@ -1,0 +1,6 @@
+PASSSWORD_LENGTH_ERROR = "password should be less than 16 characters"
+USER_TEST_MESSAGE = "Test Message"
+EMAIL_EXISTS_ERROR = "email already present"
+USER_CREATION_SUCCESS = "User created successfully !"
+MISSING_PARAMS_ERROR = "missing parameters"
+INVALID_USER = "Invalid User"

@@ -231,3 +231,34 @@ def update_secret():
         print("Exception in update secrets")
         print(e)
         return Response(INVALID_USER, status=400)  
+    
+@app.route("/deleteSecret", methods = ['POST'])
+def delete_secret():
+    try:
+        req_body = request.json
+        master_password = req_body.get('MasterPassword', '')
+        email = req_body.get('Email', '')
+        id = int(req_body.get('ID', ''))
+
+        if master_password == '' or email == ''  or id == '':
+            raise ValueError("missing params")
+        
+        if check_for_user_auth(db, master_password, email) == False:
+            raise Exception()
+        
+        table_name = get_table_name_from_email(email)
+        custom_model = create_custom_model_imperative(db, table_name)
+        secret_obj = db.session.query(custom_model).filter_by(ID = id).first()
+        if secret_obj == None:
+            raise ValueError("Missing Secret. Please provide valid ID")
+        db.session.delete(secret_obj)
+        db.session.commit()
+
+        return str(True)
+
+    except ValueError as v:
+        return Response(str(v), status=400)
+    except Exception as e:
+        print("Exception in update secrets")
+        print(e)
+        return Response(INVALID_USER, status=400) 

@@ -180,3 +180,54 @@ def add_new_secret():
         print("Exception in querying User secrets")
         print(e)
         return Response(INVALID_USER, status=400) 
+    
+
+@app.route("/updateSecret", methods = ['POST'])
+def update_secret():
+    '''
+    TODO: encrypt before Update 
+    '''
+    try:
+        req_body = request.json
+        master_password = req_body.get('MasterPassword', '')
+        email = req_body.get('Email', '')
+        field = req_body.get('Field', '')
+        value = req_body.get('Value', '')
+        id = int(req_body.get('ID', ''))
+
+        if master_password == '' or email == '' or field == '' or value == '' or id == '':
+            raise ValueError("missing params")
+        
+        if check_for_user_auth(db, master_password, email) == False:
+            raise Exception()
+        
+        table_name = get_table_name_from_email(email)
+        custom_model = create_custom_model_imperative(db, table_name)
+        secret_obj = db.session.query(custom_model).filter_by(ID = id).first()
+
+        match field:
+            case "Site":
+                print("site: ", secret_obj.Site)
+                secret_obj.Site = value
+            case "Login":
+                print("Login: ", secret_obj.Login)
+                secret_obj.Login = value
+            case "Password":
+                print("Password: ", secret_obj.Password)
+                secret_obj.Password = value
+            case "Description":
+                print("Description: ", secret_obj.Description)
+                secret_obj.Description = value
+            case default:
+                raise ValueError("Invalid field")
+            
+        db.session.commit()
+
+        return str(True)
+    
+    except ValueError as v:
+        return Response(str(v), status=400)
+    except Exception as e:
+        print("Exception in update secrets")
+        print(e)
+        return Response(INVALID_USER, status=400)  

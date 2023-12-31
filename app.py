@@ -22,7 +22,6 @@ db.init_app(app)
 
 @app.route("/")
 def hello_world():
-    # print(Users.qu ery.all())
     return "NPass Making in Progress !!"
 
 
@@ -30,6 +29,7 @@ def hello_world():
 def add_new_user():
     '''
     TODO: Validate Email and other params. 
+    Example: EMAIL should have only one @ and similar cases
     '''
     try:
         req_body = request.json
@@ -112,25 +112,29 @@ def validate_user():
 
 @app.route("/querySecrets", methods = ['POST'])
 def query_secret():
-    '''
-    TODO: decrypt with master password before returning  
-    '''
     try:
         req_body = request.json
+        master_password = req_body.get('MasterPassword', '')
+        email = req_body.get('Email', '')
         
-        if "email" not in req_body:
-            raise ValueError(EMAIL_MISSING_ERROR)
+        if master_password == '' or email == '':
+            raise ValueError(MISSING_PARAMS_ERROR)
         
-        table_name = get_table_name_from_email(req_body["email"])
+        
+        if check_for_user_auth(db, master_password, email) == False:
+            raise Exception()
+        
+        table_name = get_table_name_from_email(email)
         custom_model = create_custom_model_imperative(db, table_name)
         
         resp_obj = []
         for i in db.session.query(custom_model).all():
             row_obj = {}
-            row_obj['Site'] = i.Site
-            row_obj['Login'] = i.Login
-            row_obj['Password'] = i.Password
-            row_obj['Description'] = i.Description
+            row_obj['ID'] = i.ID
+            row_obj['Site'] = decrypt_input(i.Site, master_password)
+            row_obj['Login'] = decrypt_input(i.Login, master_password)
+            row_obj['Password'] = decrypt_input(i.Password, master_password)
+            row_obj['Description'] = decrypt_input(i.Description, master_password)
             resp_obj.append(row_obj)
 
         return str({
@@ -148,9 +152,6 @@ def query_secret():
 
 @app.route("/addNewSecret", methods = ['POST'])
 def add_new_secret():
-    '''
-    TODO: encrypt before adding 
-    '''
     try:
         req_body = request.json
         master_password = req_body.get('MasterPassword', '')
@@ -161,14 +162,14 @@ def add_new_secret():
         description = req_body.get('Description', '')
 
         if master_password == '' or email == '' or site == '':
-            raise ValueError("missing params")
+            raise ValueError(MISSING_PARAMS_ERROR)
         
         if check_for_user_auth(db, master_password, email) == False:
             raise Exception()
         
         table_name = get_table_name_from_email(email)
         custom_model = create_custom_model_imperative(db, table_name)
-        new_secrets = custom_model(Site= site, Login = login, Password = password, Description = description)
+        new_secrets = custom_model(Site= encrypt_input(site, master_password), Login = encrypt_input(login, master_password), Password = encrypt_input(password, master_password), Description = encrypt_input(description, master_password))
         db.session.add(new_secrets)
         db.session.commit()
 
@@ -184,9 +185,6 @@ def add_new_secret():
 
 @app.route("/updateSecret", methods = ['POST'])
 def update_secret():
-    '''
-    TODO: encrypt before Update 
-    '''
     try:
         req_body = request.json
         master_password = req_body.get('MasterPassword', '')
@@ -196,7 +194,7 @@ def update_secret():
         id = int(req_body.get('ID', ''))
 
         if master_password == '' or email == '' or field == '' or value == '' or id == '':
-            raise ValueError("missing params")
+            raise ValueError(MISSING_PARAMS_ERROR)
         
         if check_for_user_auth(db, master_password, email) == False:
             raise Exception()
@@ -205,19 +203,18 @@ def update_secret():
         custom_model = create_custom_model_imperative(db, table_name)
         secret_obj = db.session.query(custom_model).filter_by(ID = id).first()
 
+        if secret_obj is None:
+            raise ValueError(WRONG_ID_MESSAGE)
+
         match field:
             case "Site":
-                print("site: ", secret_obj.Site)
-                secret_obj.Site = value
+                secret_obj.Site = encrypt_input(value, master_password)
             case "Login":
-                print("Login: ", secret_obj.Login)
-                secret_obj.Login = value
+                secret_obj.Login = encrypt_input(value, master_password)
             case "Password":
-                print("Password: ", secret_obj.Password)
-                secret_obj.Password = value
+                secret_obj.Password = encrypt_input(value, master_password)
             case "Description":
-                print("Description: ", secret_obj.Description)
-                secret_obj.Description = value
+                secret_obj.Description = encrypt_input(value, master_password)
             case default:
                 raise ValueError("Invalid field")
             
@@ -231,7 +228,8 @@ def update_secret():
         print("Exception in update secrets")
         print(e)
         return Response(INVALID_USER, status=400)  
-    
+
+
 @app.route("/deleteSecret", methods = ['POST'])
 def delete_secret():
     try:
@@ -241,7 +239,7 @@ def delete_secret():
         id = int(req_body.get('ID', ''))
 
         if master_password == '' or email == ''  or id == '':
-            raise ValueError("missing params")
+            raise ValueError(MISSING_PARAMS_ERROR)
         
         if check_for_user_auth(db, master_password, email) == False:
             raise Exception()
@@ -250,7 +248,7 @@ def delete_secret():
         custom_model = create_custom_model_imperative(db, table_name)
         secret_obj = db.session.query(custom_model).filter_by(ID = id).first()
         if secret_obj == None:
-            raise ValueError("Missing Secret. Please provide valid ID")
+            raise ValueError(WRONG_ID_MESSAGE)
         db.session.delete(secret_obj)
         db.session.commit()
 

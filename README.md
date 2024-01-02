@@ -29,7 +29,7 @@ Set up a MySql DB before following these installation steps.
 | Route | Method | Description |
 | ----- | ------ | ----------- |
 | /users/create | POST | This is the method to create new users.|
-| /secret/query | POST | This returns a stringified JSON of user queries | 
+| /secret/query | POST | This returns a stringified JSON of user Secrets | 
 | /secret/add | POST | This is used to add a new secret for specified user | 
 | /secret/update | POST | This method is to modify a secret specified by user |
 | /secret/delete | POST | This method is to delete a stored secret | 

@@ -4,10 +4,10 @@
 NPass is a backend for a password manager written in flask. It uses a MySql DB hosted locally for storing user secrets. The user secrets is encrypted using AES (a symmetric key encryption algorithm) and can be decrypted only if Master Password is known. 
 ## Technology
 
-**Language** : Python
-**Framework** : Flask
-**Encryption** : AES -ECB mode
-**ORM**: SQLAlchemy
+**Language** : Python  
+**Framework** : Flask  
+**Encryption** : AES -ECB mode  
+**ORM**: SQLAlchemy  
 ## Prerequisite
 
 Set up a MySql DB before following these installation steps. 

@@ -25,7 +25,7 @@ def hello_world():
     return "NPass Making in Progress !!"
 
 
-@app.route("/addUser", methods = ['POST'])
+@app.route("/users/create", methods = ['POST'])
 def add_new_user():
     '''
     TODO: Validate Email and other params. 
@@ -84,7 +84,7 @@ def create_user_secrets_table(table_name: str) -> bool:
         return False
 
 
-@app.route("/validateUser", methods = ['POST'])
+@app.route("/users/create", methods = ['POST'])
 def validate_user():
     try:
         req_body = request.json
@@ -110,7 +110,7 @@ def validate_user():
         return Response(INVALID_USER, status=400)
     
 
-@app.route("/querySecrets", methods = ['POST'])
+@app.route("/secret/query", methods = ['POST'])
 def query_secret():
     try:
         req_body = request.json
@@ -150,7 +150,7 @@ def query_secret():
         return Response(INVALID_USER, status=400) 
 
 
-@app.route("/addNewSecret", methods = ['POST'])
+@app.route("/secret/add", methods = ['POST'])
 def add_new_secret():
     try:
         req_body = request.json
@@ -183,7 +183,7 @@ def add_new_secret():
         return Response(INVALID_USER, status=400) 
     
 
-@app.route("/updateSecret", methods = ['POST'])
+@app.route("/secret/update", methods = ['POST'])
 def update_secret():
     try:
         req_body = request.json
@@ -230,7 +230,7 @@ def update_secret():
         return Response(INVALID_USER, status=400)  
 
 
-@app.route("/deleteSecret", methods = ['POST'])
+@app.route("/secret/delete", methods = ['POST'])
 def delete_secret():
     try:
         req_body = request.json
